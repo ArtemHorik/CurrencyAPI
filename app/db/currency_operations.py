@@ -54,3 +54,62 @@ async def update_exchange_rates(session: AsyncSession, rates: dict) -> None:
         last_update_record = CurrencyUpdate(last_updated=datetime.now(timezone.utc))
         session.add(last_update_record)
         await session.commit()
+
+
+async def get_currency_rate(session: AsyncSession, currency_code: str) -> float:
+    """
+    Asynchronously retrieves the exchange rate for a given currency code from the database.
+
+    :param session: The SQLAlchemy asynchronous session to use for database queries.
+    :type session: AsyncSession
+    :param currency_code: The ISO currency code to retrieve the exchange rate for.
+    :type currency_code: str
+    :return: The exchange rate of the currency.
+    :rtype: float
+    :raises ValueError: If the currency code is not found in the database.
+
+    Example:
+        async with AsyncSession() as session:
+            rate = await get_currency_rate(session, 'USD')
+            print(f"The exchange rate for USD is {rate}.")
+    """
+    async with session.begin():
+        currency_query = await session.execute(
+            select(Currency.rate).where(Currency.code == currency_code)
+        )
+        currency_rate = currency_query.scalars().first()
+        if currency_rate is None:
+            raise ValueError(f"Currency {currency_code} is not available.")
+        return currency_rate
+
+
+async def convert_currency(session: AsyncSession, source: str, target: str, amount: float) -> float:
+    """
+    Converts an amount from one currency to another using their exchange rates.
+
+    :param session: The SQLAlchemy asynchronous session to use for database queries.
+    :type session: AsyncSession
+    :param source: The ISO code of the source currency.
+    :type source: str
+    :param target: The ISO code of the target currency.
+    :type target: str
+    :param amount: The amount in the source currency to be converted.
+    :type amount: float
+    :return: The amount converted into the target currency.
+    :rtype: float
+    :raises ValueError: If either the source or target currency code is not found in the database.
+
+    Example:
+        async with AsyncSession() as session:
+            converted_amount = await convert_currency(session, 'EUR', 'USD', 100)
+            print(f"100 EUR is equivalent to {converted_amount} USD.")
+    """
+    # Get source currency rate
+    source_rate = await get_currency_rate(session, source)
+
+    # Get target currency rate
+    target_rate = await get_currency_rate(session, target)
+
+    # Make conversion
+    converted_amount = amount * (target_rate / source_rate)
+    return converted_amount

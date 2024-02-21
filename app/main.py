@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Config
-from app.db.currency_operations import get_last_update_time, update_exchange_rates
+from app.db.currency_operations import get_last_update_time, update_exchange_rates, convert_currency
 from app.db.engine import get_session
 from app.db.models.currency import Currency
 from app.services.exchange_rates import fetch_current_exchange_rates
@@ -49,6 +49,15 @@ async def update_rates(session: AsyncSession = Depends(get_session)):
         return {"message": "Exchange rates updated successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e}")
+
+
+@app.get("/convert")
+async def convert_endpoint(source: str, target: str, amount: float, session: AsyncSession = Depends(get_session)):
+    try:
+        result = await convert_currency(session, source, target, amount)
+        return {"converted_amount": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"{e}")
 
 
 if __name__ == "__main__":
