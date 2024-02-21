@@ -2,21 +2,19 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.currency_operations import get_last_update_time
+from app.config import Config
+from app.db.currency_operations import get_last_update_time, update_exchange_rates
 from app.db.engine import get_session
 from app.db.models.currency import Currency
+from app.services.exchange_rates import fetch_current_exchange_rates
+from app.utils.logger import logger
 
 app = FastAPI()
 
 
 @app.on_event("startup")
 async def on_startup():
-    pass
-
-
-@app.get("/ping")
-async def ping():
-    return {"ping": "pong!"}
+    logger.info("Starting up the application...")
 
 
 @app.get("/currencies")
@@ -31,9 +29,26 @@ async def read_currencies(session: AsyncSession = Depends(get_session)):
 async def read_last_update_time(session: AsyncSession = Depends(get_session)):
     last_update_time = await get_last_update_time(session)
     if last_update_time:
-        return {"last_update_time": last_update_time}
+        return {"last_update_time": last_update_time.strftime("%d-%b-%Y %H:%M")}
     else:
         raise HTTPException(status_code=404, detail="Last update time not found.")
+
+
+@app.post("/update-rates")
+async def update_rates(session: AsyncSession = Depends(get_session)):
+    """
+    Endpoint to update exchange rates in the database with current rates from an external API.
+
+    This endpoint fetches current exchange rates using an external API and updates these rates in the database.
+    """
+    try:
+        # Get new rates
+        rates = await fetch_current_exchange_rates(Config.API_KEY)
+        # Update existing rates in db
+        await update_exchange_rates(session, rates)
+        return {"message": "Exchange rates updated successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")
 
 
 if __name__ == "__main__":

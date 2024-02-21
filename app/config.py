@@ -13,9 +13,5 @@ if dotenv_path.exists():
 class Config:
     API_KEY = os.getenv("API_KEY")
 
-    # DATABASE_URL = f'postgresql+asyncpg://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}' \
-    #                f'@{os.getenv("POSTGRES_HOST", "localhost")}' \
-    #                f':{os.getenv("POSTGRES_PORT", 5432)}/{os.getenv("POSTGRES_DB")}'
-    # DATABASE_URL = 'postgresql+asyncpg://postgres:1337@localhost/horik'
     DATABASE_URL = os.getenv("DATABASE_URL")
 
