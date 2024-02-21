@@ -1,24 +1,32 @@
 version: '3.8'
 
+volumes:
+  pgdata:
+    driver: local
+
 services:
 
-  web:
-    build: ./project
-    command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+  app:
+    build: .
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000"
+    env_file:
+      - ./.env
     volumes:
-      - ./project:/usr/src/app
+      - .:/app
     ports:
-      - 8004:8000
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/foo
+      - "8000:8000"
+#    expose:
+#      - 8000
     depends_on:
       - db
 
   db:
-    image: postgres:15.3
+    image: postgres:15.6
     expose:
       - 5432
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=foo
+      - POSTGRES_DB=api_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
