@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,7 +57,7 @@ async def update_exchange_rates(session: AsyncSession, rates: dict) -> None:
         await session.commit()
 
 
-async def get_currency_rate(session: AsyncSession, currency_code: str) -> float:
+async def get_currency_rate(session: AsyncSession, currency_code: str) -> Decimal:
     """
     Asynchronously retrieves the exchange rate for a given currency code from the database.
 
@@ -83,7 +84,7 @@ async def get_currency_rate(session: AsyncSession, currency_code: str) -> float:
         return currency_rate
 
 
-async def convert_currency(session: AsyncSession, source: str, target: str, amount: float) -> float:
+async def convert_currency(session: AsyncSession, source: str, target: str, amount: float) -> Decimal:
     """
     Converts an amount from one currency to another using their exchange rates.
 
@@ -110,8 +111,10 @@ async def convert_currency(session: AsyncSession, source: str, target: str, amou
     # Get target currency rate
     target_rate = await get_currency_rate(session, target)
 
+    amount_decimal = Decimal(str(amount))
+
     # Make conversion
-    converted_amount = amount * (target_rate / source_rate)
+    converted_amount = amount_decimal * (target_rate / source_rate)
     return converted_amount
 
 
