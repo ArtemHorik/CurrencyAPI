@@ -113,3 +113,17 @@ async def convert_currency(session: AsyncSession, source: str, target: str, amou
     # Make conversion
     converted_amount = amount * (target_rate / source_rate)
     return converted_amount
+
+
+async def get_currencies(session: AsyncSession) -> list:
+    """
+    Fetches all currencies from the database.
+
+    :param AsyncSession session: The session for database operations.
+    :return: A list of Currency objects.
+    """
+    result = await session.execute(
+        select(Currency.rate, Currency.code, Currency.name)
+    )
+    currencies = result.all()
+    return currencies
