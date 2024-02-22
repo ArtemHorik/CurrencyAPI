@@ -63,18 +63,63 @@ Once the application is running, you can interact with the API using the followi
 - **Update Exchange Rates**: `POST /update-rates`
   
   Fetches the latest exchange rates from the external API and updates the database.
+  
+  **Example Response**:
+  ```json
+  {
+    "message": "Exchange rates updated successfully."
+  }
+  ```
+
 
 - **Get Currencies List**: `POST /currencies`
   
-  Returns a list of all the currencies from the database.
+  Returns a list of all the currencies from the database. (Base currency in EUR)
+  
+  **Example Response**
+  ```json
+  [
+    {
+        "rate": 3.970735,
+        "code": "AED",
+        "name": "United Arab Emirates Dirham"
+    },
+    {
+        "rate": 1.081075,
+        "code": "USD",
+        "name": "United States Dollar"
+    },
+    {
+        "rate": 1,
+        "code": "EUR",
+        "name": "Euro"
+    }, ...
+  ]
+  ```
 
 - **Last Update Time**: `GET /last-update-time`
   
-  Returns the date and time of the last successful update of exchange rates.
+  Returns the date and time of the last successful update of exchange rates. (UTC)
+  
+  **Example Response**:
+  ```json
+  {
+    "last_update_time": "20-Feb-2024 20:33"
+  }
+  ```
+
 
 - **Convert Currency**: `GET /convert?source=USD&target=EUR&amount=100`
   
   Converts an amount from the source currency to the target currency. Replace `USD`, `EUR`, and `100` with your desired source currency, target currency, and amount.
+  
+  **Example Response**:
+  ```json
+  {
+    "converted_amount": 85.34
+  }
+  ```
+
 
 ### Documentation
 
