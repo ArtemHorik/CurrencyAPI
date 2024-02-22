@@ -19,7 +19,7 @@ This project is a FastAPI application designed to provide an API for currency co
 
 ## Getting Started
 
-### Prerequisites
+### Dependencies
 
 - Docker
 - Docker Compose
