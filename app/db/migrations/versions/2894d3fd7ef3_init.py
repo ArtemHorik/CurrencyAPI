@@ -21,8 +21,8 @@ def upgrade() -> None:
     op.create_table('currencies',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=True),
-    sa.Column('code', sa.String(), nullable=True),
-    sa.Column('rate', sa.Float(), nullable=True),
+    sa.Column('code', sa.String(), nullable=False),
+    sa.Column('rate', sa.DECIMAL(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_currencies_code'), 'currencies', ['code'], unique=True)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, func, DateTime
+from sqlalchemy import Column, Integer, String, Float, func, DateTime, DECIMAL
 from app.db.models import BaseModel
 
 
@@ -8,7 +8,7 @@ class Currency(BaseModel):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     code = Column(String, unique=True, index=True)
-    rate = Column(Float)
+    rate = Column(DECIMAL(), nullable=False)
 
 
 class CurrencyUpdate(BaseModel):
