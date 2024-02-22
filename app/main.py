@@ -1,11 +1,10 @@
 from fastapi import FastAPI, HTTPException, Depends
-from sqlalchemy import select
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Config
 from app.db.currency_operations import get_last_update_time, update_exchange_rates, convert_currency, get_currencies
 from app.db.engine import get_session
-from app.db.models.currency import Currency
 from app.services.exchange_rates import fetch_current_exchange_rates
 from app.utils.logger import logger
 
@@ -17,7 +16,8 @@ async def on_startup():
     logger.info("Starting up the application...")
 
 
-@app.get("/currencies")
+@app.get("/currencies", summary="List Currencies",
+         description="Returns a list of available currencies, their current exchange rates and names from DB.")
 async def read_currencies(session: AsyncSession = Depends(get_session)):
     """
     Endpoint to read all available currencies from the database.
@@ -29,7 +29,9 @@ async def read_currencies(session: AsyncSession = Depends(get_session)):
     return currencies
 
 
-@app.get("/last-update-time")
+@app.get("/last-update-time", summary="Get Last DB Update Time",
+         description="Retrieves the last time the exchange rates were updated in the database.",
+         response_description="The last update time of the exchange rates.")
 async def read_last_update_time(session: AsyncSession = Depends(get_session)):
     """
     Retrieves the last time the exchange rates were updated in the database.
@@ -46,7 +48,10 @@ async def read_last_update_time(session: AsyncSession = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Last update time not found.")
 
 
-@app.post("/update-rates")
+@app.post("/update-rates", summary="Update Exchange Rates",
+          description="Updates the exchange rates in the database with current rates from an external API.",
+          responses={200: {"description": "Exchange rates updated successfully."},
+                     500: {"description": "Internal server error."}})
 async def update_rates(session: AsyncSession = Depends(get_session)):
     """
     Endpoint to update exchange rates in the database with current rates from an external API.
@@ -66,7 +71,14 @@ async def update_rates(session: AsyncSession = Depends(get_session)):
         raise HTTPException(status_code=500, detail=f"{e}")
 
 
-@app.get("/convert")
+class ConvertOutput(BaseModel):
+    converted_amount: float = Field(..., description="Converted amount in the target currency")
+
+
+@app.get("/convert", summary="Convert Currency",
+         description="Converts a specified amount from a source currency to a target currency.",
+         response_model=ConvertOutput,
+         responses={400: {"description": "Invalid input parameters."}})
 async def convert_endpoint(source: str, target: str, amount: float, session: AsyncSession = Depends(get_session)):
     """
     Converts a specified amount from a source currency to a target currency using the latest exchange rates.
