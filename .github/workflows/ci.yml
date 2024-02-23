@@ -34,7 +34,7 @@ jobs:
         coverage-reports: coverage.xml
 
     - name: Codacy Code Analysis
-      uses: codacy/codacy-analysis-cli-action@v3
+      uses: codacy/codacy-analysis-cli-action@v2
       with:
         project-token: ${{ secrets.CODACY_CURRENCYAPI_TOKEN }}
         upload: true
